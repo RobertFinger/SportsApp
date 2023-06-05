@@ -244,20 +244,23 @@ namespace SportData.Handlers
                     }
                 }
 
+                var firstInitial = player.FirstName?.FirstOrDefault().ToString() ?? string.Empty;
+                var lastInitial = player.LastName?.FirstOrDefault().ToString() ?? string.Empty;
+
                 if (player.Sport == Sport.football)
                 {
                     // For football players, set name_brief as the first initial and last name
-                    player.NameBrief = $"{player.FirstName[0]}. {player.LastName}";
+                    player.NameBrief = $"{firstInitial}. {player.LastName}";
                 }
                 else if (player.Sport == Sport.basketball)
                 {
                     // For basketball players, set name_brief as first name and last initial
-                    player.NameBrief = $"{player.FirstName} {player.LastName[0]}.";
+                    player.NameBrief = $"{player.FirstName} {lastInitial}.";
                 }
                 else if (player.Sport == Sport.baseball)
                 {
                     // For baseball players, set name_brief as the first initial and last initial
-                    player.NameBrief = $"{player.FirstName[0]}. {player.LastName[0]}.";
+                    player.NameBrief = $"{firstInitial}. {lastInitial}.";
                 }
             }
 
@@ -289,7 +292,7 @@ namespace SportData.Handlers
                 sb.Append(" AND c.Position = @position");
             }
 
-            if (!string.IsNullOrEmpty(searchQuery?.Age))
+            if (ageRange != null)
             {
                 sb.Append(" AND (c.Age >= @lower_bound AND c.Age <= @upper_bound)");
             }

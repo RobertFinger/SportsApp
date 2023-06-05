@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Serialization.HybridRow;
 using Microsoft.Azure.Cosmos.Spatial;
 using Newtonsoft.Json;
 using SportData.Models;
@@ -254,38 +255,38 @@ namespace SportData.Handlers
         private async Task<List<DbObjectPlayer>> SearchPlayersAsync(SearchQuery searchQuery)
         {
             var sb = new StringBuilder();
-            var ageRange = ParseAgeRange(searchQuery.Age);
+            var ageRange = ParseAgeRange(searchQuery.Age ?? string.Empty);
 
-            sb.Append("SELECT * FROM Items c WHERE c.partitionKey = @partitionKey");
-            
-            if(searchQuery.Sport != "unknown")
+            //we need partition key, but if they didn't selecet a sport, we need to search all partitions
+            sb.Append("SELECT * FROM Items c WHERE c.partitionKey = c.partitionKey");
+           
+            if(searchQuery?.Sport != null)
             {
-                sb.Append(" AND c.Sport = @sport");
+                sb.Append(" AND c.partitionKey = @partitionKey");
             }
 
-            if (!string.IsNullOrEmpty(searchQuery.LastName))
+            var firstInitialLastName = searchQuery?.LastName?.Trim().FirstOrDefault().ToString() ?? string.Empty;
+            if (!string.IsNullOrEmpty(firstInitialLastName))
             {
-                sb.Append(" AND c.LastName = @lastName");
+                sb.Append(" AND LEFT(c.LastName, 1) = @lastName");
             }
 
-            if (!string.IsNullOrEmpty(searchQuery.Position))
+            if (!string.IsNullOrEmpty(searchQuery?.Position))
             {
                 sb.Append(" AND c.Position = @position");
             }
 
-            if (!string.IsNullOrEmpty(searchQuery.Age))
+            if (!string.IsNullOrEmpty(searchQuery?.Age))
             {
                 sb.Append(" AND (c.Age >= @lower_bound AND c.Age <= @upper_bound)");
             }
-  
-            Sport sportEnum = (Sport)Enum.Parse(typeof(Sport), searchQuery.Sport);
+      
 
             var query = sb.ToString();
             var queryDefinition = new QueryDefinition(query)
-                .WithParameter("@partitionKey", searchQuery.Sport.ToString())
-                .WithParameter("@sport", sportEnum)
-                .WithParameter("@lastName", searchQuery.LastName.Trim())
-                .WithParameter("@position", searchQuery.Position.Trim())
+                .WithParameter("@partitionKey", searchQuery?.Sport?.ToString())
+                .WithParameter("@lastName", firstInitialLastName)
+                .WithParameter("@position", searchQuery?.Position?.Trim() ?? string.Empty)
                 .WithParameter("@lower_bound", ageRange?.Min() ?? 0)
                 .WithParameter("@upper_bound", ageRange?.Max() ?? 0);
             
@@ -305,11 +306,26 @@ namespace SportData.Handlers
 
         public static int?[] ParseAgeRange(string ageRange)
         {
-            ageRange = ageRange.Trim().Replace(" ", "-");
-            string[] range = ageRange.Split('-');
-            List<int> result = range.Select(int.Parse).ToList();
+            try
+            {
+                if(string.IsNullOrEmpty(ageRange))
+                {
+                    return new int?[] { 0, 0 };
+                }   
 
-            return new int?[] { result.Min(), result.Max() };
+                ageRange = ageRange.Trim().Replace(" ", "-");
+                string[] range = ageRange.Split('-');
+                List<int> result = range.Select(int.Parse).ToList();
+
+                var rv = new int?[] { result.Min(), result.Max() };
+
+                return rv;
+            }
+            catch(Exception ex)
+            {
+                //this should be smarter - but if they tried to search on something that isn't an int, just return 0's
+                return new int?[] { 0, 0};
+            }
         }
     }
 }

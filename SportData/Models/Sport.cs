@@ -2,9 +2,9 @@
 {
     public enum Sport
     {
-        unknown,
-        baseball,
-        basketball,
-        football
+        unknown = 0,
+        baseball = 1,
+        basketball = 2,
+        football = 3
     }
 }

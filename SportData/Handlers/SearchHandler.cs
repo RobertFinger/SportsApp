@@ -222,6 +222,7 @@ namespace SportData.Handlers
             //I only want to adjust the data we actually use.  So rather than do it in the refresh, I'll do it as needed. This does mean that a huge search will be slower.
             //This is a good place to do it since we need all of the data before we can do the average age calculations so there is no point trying to do it on the fly.
 
+            //save the value once we calculate it.
             var averageAgesForPositions = new Dictionary<string, int>();
 
 

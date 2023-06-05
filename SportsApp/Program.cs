@@ -1,9 +1,6 @@
 using SportsApp.Handlers;
-using MediatR;
-using Microsoft.Extensions.DependencyInjection;
 using SportsApp.Requests;
 using System.Reflection;
-using SportsApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 

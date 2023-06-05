@@ -1,10 +1,6 @@
 ﻿using MediatR;
 using Microsoft.AspNetCore.Mvc;
-using RabbitMQ.Client;
 using SportsApp.Requests;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using RabbitMQ.Client;
 
 
 namespace SportsApp.Handlers

@@ -265,7 +265,7 @@ namespace SportData.Handlers
                 sb.Append(" AND c.partitionKey = @partitionKey");
             }
 
-            var firstInitialLastName = searchQuery?.LastName?.Trim().FirstOrDefault().ToString() ?? string.Empty;
+            var firstInitialLastName = searchQuery?.LastName?.Trim().FirstOrDefault().ToString().ToUpper() ?? string.Empty;
             if (!string.IsNullOrEmpty(firstInitialLastName))
             {
                 sb.Append(" AND LEFT(c.LastName, 1) = @lastName");

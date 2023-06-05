@@ -219,16 +219,28 @@ namespace SportData.Handlers
 
         private async Task<List<DbObjectPlayer>> AdjustData(List<DbObjectPlayer> players)
         {
-            //I only want to adjust the data we actually use.  So rather than do it in the refresh, I'll do it as needed.
+            //I only want to adjust the data we actually use.  So rather than do it in the refresh, I'll do it as needed. This does mean that a huge search will be slower.
             //This is a good place to do it since we need all of the data before we can do the average age calculations so there is no point trying to do it on the fly.
+
+            var averageAgesForPositions = new Dictionary<string, int>();
+
 
             foreach (var player in players)
             {
                 if (player.Age > 0)
                 {
                     //This value should be the difference between the age of the player vs the average age for the player’s position
-                    var averageAge = await GetAverageAgeByPositionAndSportAsync(player.Position, player.Sport);
-                    player.AveragePositionAgeDiff = player.Age - averageAge;
+                    if(averageAgesForPositions.ContainsKey(player.Position))
+                    {
+                        var avg = averageAgesForPositions[player.Position];
+                        player.AveragePositionAgeDiff = player.Age - avg;
+                    }
+                    else
+                    {
+                        var averageAge = await GetAverageAgeByPositionAndSportAsync(player.Position, player.Sport);
+                        averageAgesForPositions.Add(player.Position, averageAge);
+                        player.AveragePositionAgeDiff = player.Age - averageAge;
+                    }
                 }
 
                 if (player.Sport == Sport.football)

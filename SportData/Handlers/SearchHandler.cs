@@ -330,7 +330,9 @@ namespace SportData.Handlers
                 string[] range = ageRange.Split('-');
                 List<int> result = range.Select(int.Parse).ToList();
 
-                var rv = new int?[] { result.Min(), result.Max() };
+                var min = (result.Min() > 0) ? result.Min() : 1;
+                var max = (result.Max() < 100) ? result.Max() : 100; 
+                var rv = new int?[] { min, max };
 
                 return rv;
             }
